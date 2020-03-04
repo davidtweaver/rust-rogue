@@ -28,8 +28,8 @@ struct State {
 
 impl State {
     fn run_systems(&mut self) {
-        let mut lw = LeftWalker{};
-        lw.run_now(&self.ecs);
+        //let mut lw = LeftWalker{};
+        //lw.run_now(&self.ecs);
         self.ecs.maintain();
     }
 }
@@ -180,7 +180,6 @@ fn main() {
     // register our components with the ECS
     gs.ecs.register::<Position>();
     gs.ecs.register::<Renderable>();
-    gs.ecs.register::<LeftMover>();
     gs.ecs.register::<Player>();
 
     // create an entity which uses these components
@@ -195,19 +194,5 @@ fn main() {
     .with(Player{})
     .build();
 
-    for i in 0..10 {
-        gs.ecs
-        .create_entity()
-        .with(Position { x: i * 7, y: 20 })
-        .with(Renderable {
-            glyph: rltk::to_cp437('☺'),
-            fg: RGB::named(rltk::RED),
-            bg: RGB::named(rltk::BLACK),
-        })
-        .with(LeftMover{})
-        .build();
-    }
-
- 
     rltk::main_loop(context, gs);
 }
