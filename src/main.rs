@@ -11,6 +11,9 @@ mod player;
 use player::*;
 mod map;
 use map::*;
+mod rect;
+pub use rect::Rect;
+
 
 pub struct State {
     ecs: World
@@ -81,7 +84,7 @@ fn main() {
     };
 
     // add map
-    gs.ecs.insert(new_map());
+    gs.ecs.insert(new_map_rooms_and_corridors());
     
     // register our components with the ECS
     gs.ecs.register::<Position>();
