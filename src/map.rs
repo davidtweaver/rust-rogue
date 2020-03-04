@@ -13,7 +13,7 @@ pub fn xy_idx(x: i32, y: i32) -> usize {
 }
 
 // creates a solid map
-pub fn new_map_rooms_and_corridors() -> Vec<TileType> {
+pub fn new_map_rooms_and_corridors() -> (Vec<Rect>, Vec<TileType>) {
     let mut map = vec![TileType::Wall; 80*50];
 
     let mut rooms : Vec<Rect> = Vec::new();
@@ -35,6 +35,10 @@ pub fn new_map_rooms_and_corridors() -> Vec<TileType> {
         if ok {
             apply_room_to_map(&new_room, &mut map);
 
+            //So what does this do? It starts by looking to see if the rooms list is empty. If it is, then there is no previous room to join to - so we ignore it.
+            //It gets the room's center, and stores it as new_x and new_y.
+            //It gets the previous room in the vector's center, and stores it as prev_x and prev_y.
+            //It rolls a dice, and half the time it draws a horizontal and then vertical tunnel - and half the time, the other way around.
             if !rooms.is_empty() {
             let (new_x, new_y) = new_room.center();
             let (prev_x, prev_y) = rooms[rooms.len()-1].center();
@@ -51,7 +55,7 @@ pub fn new_map_rooms_and_corridors() -> Vec<TileType> {
         }
     }
 
-    map
+    (rooms, map)
 }
 
 fn apply_horizontal_tunnel(map: &mut [TileType], x1:i32, x2:i32, y:i32) {
