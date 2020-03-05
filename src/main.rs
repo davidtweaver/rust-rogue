@@ -6,7 +6,7 @@ use std::cmp::{max, min};
 extern crate specs_derive;
 
 mod components;
-pub use components::{Position, Renderable, Player};
+pub use components::{Position, Renderable, Player, Viewshed};
 mod player;
 use player::*;
 mod map;
@@ -89,6 +89,7 @@ fn main() {
     gs.ecs.register::<Position>();
     gs.ecs.register::<Renderable>();
     gs.ecs.register::<Player>();
+    gs.ecs.register::<Viewshed>();
 
     // add map
     let map: Map = Map::new_map_rooms_and_corridors();
@@ -104,6 +105,7 @@ fn main() {
         bg: RGB::named(rltk::BLACK),
     })
     .with(Player{})
+    .with(Viewshed{ visible_tiles : Vec::new(), range : 8 })
     .build();
 
     rltk::main_loop(context, gs);
