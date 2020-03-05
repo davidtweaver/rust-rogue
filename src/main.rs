@@ -91,10 +91,9 @@ fn main() {
     gs.ecs.register::<Player>();
 
     // add map
-    let (rooms, map) = new_map_rooms_and_corridors();
+    let map: Map = Map::new_map_rooms_and_corridors();
+    let (player_x, player_y) = map.rooms[0].center();
     gs.ecs.insert(map);
-    let (player_x, player_y) = rooms[0].center();
-
     // create an entity which uses these components
     gs.ecs
     .create_entity()
