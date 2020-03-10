@@ -21,6 +21,14 @@ impl<'a> System<'a> for HostileAI {
         let (mut map, player_pos, mut viewshed, npc, name, mut position) = data;
 
         for (mut viewshed, _npc, name, mut pos) in (&mut viewshed, &npc, &name, &mut position).join() {
+            
+            let distance = rltk::DistanceAlg::Pythagoras.distance2d(Point::new(pos.x, pos.y), *player_pos);
+            if distance < 1.5 {
+                // Attack goes here
+                console::log(&format!("{} shouts insults", name.name));
+                return;
+            }
+            
             if viewshed.visible_tiles.contains(&*player_pos) {
                 console::log(&format!("{} muses aloud", name.name));
                 let path = rltk::a_star_search(
