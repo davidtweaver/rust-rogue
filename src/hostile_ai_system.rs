@@ -1,6 +1,6 @@
 extern crate specs;
 use specs::prelude::*;
-use super::{Viewshed, Position, Map, NPC, Name};
+use super::{Viewshed, Position, Map, NPC, Name, IntentToMelee, RunState};
 extern crate rltk;
 use rltk::{field_of_view, Point, console};
 
@@ -10,27 +10,31 @@ impl<'a> System<'a> for HostileAI {
     #[allow(clippy::type_complexity)]
     type SystemData = ( WriteExpect<'a, Map>,
                         ReadExpect<'a, Point>,
+                        ReadExpect<'a, Entity>,
+                        ReadExpect<'a, RunState>,
+                        Entities<'a>,
                         WriteStorage<'a, Viewshed>,
                         ReadStorage<'a, NPC>,
-                        ReadStorage<'a, Name>,
-                        WriteStorage<'a, Position>);
+                        WriteStorage<'a, Position>,
+                        WriteStorage<'a, IntentToMelee>);
 
 
     // this can probably be abstracted to a general ai system
     fn run(&mut self, data : Self::SystemData) {
-        let (mut map, player_pos, mut viewshed, npc, name, mut position) = data;
+        // let (mut map, player_pos, mut viewshed, npc, name, mut position, mut intent_to_melee) = data;
+        let (mut map, player_pos, player_entity, runstate, entities, mut viewshed, npc, mut position, mut intent_to_melee) = data;
 
-        for (mut viewshed, _npc, name, mut pos) in (&mut viewshed, &npc, &name, &mut position).join() {
+        //for (mut viewshed, _npc, name, mut pos) in (&mut viewshed, &entities, &name, &mut position).join() {
+        for (entity, mut viewshed,_npc,mut pos) in (&entities, &mut viewshed, &npc, &mut position).join() {
             
             let distance = rltk::DistanceAlg::Pythagoras.distance2d(Point::new(pos.x, pos.y), *player_pos);
             if distance < 1.5 {
                 // Attack goes here
-                console::log(&format!("{} shouts insults", name.name));
+                intent_to_melee.insert(entity, IntentToMelee{ target: *player_entity }).expect("Unable to insert attack");
                 return;
             }
             
             if viewshed.visible_tiles.contains(&*player_pos) {
-                console::log(&format!("{} muses aloud", name.name));
                 let path = rltk::a_star_search(
                     map.xy_idx(pos.x, pos.y) as i32,
                     map.xy_idx(player_pos.x, player_pos.y) as i32,
