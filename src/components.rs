@@ -48,7 +48,7 @@ pub struct CombatStats {
 }
 
 #[derive(Component, Debug, Clone)]
-pub struct CanMelee {
+pub struct IntentToMelee {
     pub target : Entity
 }
 

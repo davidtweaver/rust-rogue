@@ -18,6 +18,8 @@ mod hostile_ai_system;
 use hostile_ai_system::*;
 mod map_indexing_system;
 use map_indexing_system::*;
+mod melee_combat_system;
+use melee_combat_system::*;
 mod damage_system;
 use damage_system::*;
 
@@ -37,6 +39,10 @@ impl State {
         mob.run_now(&self.ecs);
         let mut mapindex = MapIndexingSystem{};
         mapindex.run_now(&self.ecs);
+        let mut melee = MeleeCombatSystem{};
+        melee.run_now(&self.ecs);
+        let mut damage = DamageSystem{};
+        damage.run_now(&self.ecs);
         self.ecs.maintain();
     }
 }
@@ -53,7 +59,6 @@ impl GameState for State {
             self.runstate = player_input(self, ctx);
         }
         damage_system::delete_the_dead(&mut self.ecs);
-        //self.run_systems();
 
         draw_map(&self.ecs, ctx);
 
@@ -86,7 +91,7 @@ fn main() {
     gs.ecs.register::<Name>();
     gs.ecs.register::<BlocksTile>();
     gs.ecs.register::<CombatStats>();
-    gs.ecs.register::<CanMelee>();
+    gs.ecs.register::<IntentToMelee>();
     gs.ecs.register::<SufferDamage>();
 
     let map : Map = Map::new_map_rooms_and_corridors();
