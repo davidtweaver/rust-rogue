@@ -3,7 +3,7 @@ use rltk::{VirtualKeyCode, Rltk, Point, console};
 extern crate specs;
 use specs::prelude::*;
 use std::cmp::{max, min};
-use super::{Position, Player, Viewshed, TileType, State, RunState, Map, CombatStats};
+use super::{Position, Player, Viewshed, TileType, State, RunState, Map, CombatStats, CanMelee, SufferDamage};
 
 pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
     let mut positions = ecs.write_storage::<Position>();
@@ -14,6 +14,16 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
     
     let combat_stats = ecs.read_storage::<CombatStats>();
     let map = ecs.fetch::<Map>();
+    let mut can_melee = ecs.write_storage::<CanMelee>();
+
+    // for potential_target in map.tile_content[destination_idx].iter() {
+    // let target = combat_stats.get(*potential_target);
+    //     if let Some(_target) = target {
+    //         SufferDamage::new_damage(&mut inflict_damage, can_melee.target, damage);
+    //         return;
+    //     }
+    // }
+
 
     for (_player, pos, viewshed) in (&mut players, &mut positions, &mut viewsheds).join() {
         let destination_idx = map.xy_idx(pos.x + delta_x, pos.y + delta_y);

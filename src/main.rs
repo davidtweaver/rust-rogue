@@ -18,6 +18,8 @@ mod hostile_ai_system;
 use hostile_ai_system::*;
 mod map_indexing_system;
 use map_indexing_system::*;
+mod damage_system;
+use damage_system::*;
 
 pub struct State {
     pub ecs: World,
@@ -50,6 +52,7 @@ impl GameState for State {
         } else {
             self.runstate = player_input(self, ctx);
         }
+        damage_system::delete_the_dead(&mut self.ecs);
         //self.run_systems();
 
         draw_map(&self.ecs, ctx);
@@ -83,6 +86,8 @@ fn main() {
     gs.ecs.register::<Name>();
     gs.ecs.register::<BlocksTile>();
     gs.ecs.register::<CombatStats>();
+    gs.ecs.register::<CanMelee>();
+    gs.ecs.register::<SufferDamage>();
 
     let map : Map = Map::new_map_rooms_and_corridors();
     let (player_x, player_y) = map.rooms[0].center();
