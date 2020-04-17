@@ -96,6 +96,7 @@ impl GameState for State {
             if map.visible_tiles[idx] { ctx.set(pos.x, pos.y, render.fg, render.bg, render.glyph) }
         }
         gui::draw_ui(&self.ecs, ctx);
+        gui::draw_tooltips(&self.ecs, ctx);
     }
 }
 
