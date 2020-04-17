@@ -24,12 +24,11 @@ mod damage_system;
 use damage_system::*;
 
 pub struct State {
-    pub ecs: World,
-    pub runstate: RunState
+    pub ecs: World
 }
 
 #[derive(PartialEq, Copy, Clone)]
-pub enum RunState { Paused, Running }
+pub enum RunState { AwaitingInput, PreRun, PlayerTurn, AITurn }
 
 impl State {
     fn run_systems(&mut self) {
@@ -46,18 +45,42 @@ impl State {
         self.ecs.maintain();
     }
 }
-
+// todo: refactor the state machine into its own module
 impl GameState for State {
+
+    // handling state entirely through side-effects doesn't seem wise.
     fn tick(&mut self, ctx : &mut Rltk) {
         ctx.cls();
 
-        //player_input(self, ctx);
-        if self.runstate == RunState::Running {
-            self.run_systems();
-            self.runstate = RunState::Paused;
-        } else {
-            self.runstate = player_input(self, ctx);
+        let mut newrunstate;
+        {
+            let runstate = self.ecs.fetch::<RunState>();
+            newrunstate = *runstate;
         }
+
+        match newrunstate {
+            RunState::PreRun => {
+                self.run_systems();
+                newrunstate = RunState::AwaitingInput;
+            }
+            RunState::AwaitingInput => {
+                newrunstate = player_input(self, ctx);
+            }
+            RunState::PlayerTurn => {
+                self.run_systems();
+                newrunstate = RunState::AITurn;
+            }
+            RunState::AITurn => {
+                self.run_systems();
+                newrunstate = RunState::AwaitingInput;
+            }
+        }
+
+        {
+            let mut runwriter = self.ecs.write_resource::<RunState>();
+            *runwriter = newrunstate;
+        }
+
         damage_system::delete_the_dead(&mut self.ecs);
 
         draw_map(&self.ecs, ctx);
@@ -65,23 +88,23 @@ impl GameState for State {
         let positions = self.ecs.read_storage::<Position>();
         let renderables = self.ecs.read_storage::<Renderable>();
         let map = self.ecs.fetch::<Map>();
-        
+
         for (pos, render) in (&positions, &renderables).join() {
             let idx = map.xy_idx(pos.x, pos.y);
-            if map.visible_tiles[idx] { ctx.set(pos.x, pos.y, render.fg, render.bg, render.glyph)}
-            //ctx.set(pos.x, pos.y, render.fg, render.bg, render.glyph);
+            if map.visible_tiles[idx] { ctx.set(pos.x, pos.y, render.fg, render.bg, render.glyph) }
         }
+        
     }
 }
 
 fn main() {
     use rltk::RltkBuilder;
-    let context = RltkBuilder::simple80x50()
-        .with_title("Roguelike Tutorial")
-        .build();
+        let mut context = RltkBuilder::simple80x50()
+            .with_title("Roguelike Tutorial")
+            .build();
+    context.with_post_scanlines(true);
     let mut gs = State {
-        ecs: World::new(),
-        runstate : RunState::Running
+        ecs: World::new()
     };
     gs.ecs.register::<Position>();
     gs.ecs.register::<Renderable>();
@@ -142,7 +165,8 @@ fn main() {
         .build();
     
     gs.ecs.insert(player_entity);
-    gs.ecs.insert(RunState::Running);
+    //gs.ecs.insert(RunState::Running);
+    gs.ecs.insert(RunState::PreRun);
 
     rltk::main_loop(context, gs);
 }

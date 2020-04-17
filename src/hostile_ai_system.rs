@@ -21,10 +21,11 @@ impl<'a> System<'a> for HostileAI {
 
     // this can probably be abstracted to a general ai system
     fn run(&mut self, data : Self::SystemData) {
-        // let (mut map, player_pos, mut viewshed, npc, name, mut position, mut intent_to_melee) = data;
+       
         let (mut map, player_pos, player_entity, runstate, entities, mut viewshed, npc, mut position, mut intent_to_melee) = data;
 
-        //for (mut viewshed, _npc, name, mut pos) in (&mut viewshed, &entities, &name, &mut position).join() {
+        if *runstate != RunState::AITurn { return; }
+        
         for (entity, mut viewshed,_npc,mut pos) in (&entities, &mut viewshed, &npc, &mut position).join() {
             
             let distance = rltk::DistanceAlg::Pythagoras.distance2d(Point::new(pos.x, pos.y), *player_pos);
