@@ -1,7 +1,5 @@
-extern crate specs;
 use specs::prelude::*;
 use super::{Viewshed, Position, Map, NPC, Name, IntentToMelee, RunState};
-extern crate rltk;
 use rltk::{field_of_view, Point, console};
 
 pub struct HostileAI {}

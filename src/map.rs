@@ -137,8 +137,8 @@ impl BaseMap for Map {
         self.tiles[idx] == TileType::Wall
     }
 
-    fn get_available_exits(&self, idx:usize) -> Vec<(usize, f32)> {
-        let mut exits : Vec<(usize, f32)> = Vec::new();
+    fn get_available_exits(&self, idx:usize) -> rltk::SmallVec<[(usize, f32); 10]> {
+        let mut exits = rltk::SmallVec::new();
         let x = idx as i32 % self.width;
         let y = idx as i32 / self.width;
         let w = self.width as usize;
