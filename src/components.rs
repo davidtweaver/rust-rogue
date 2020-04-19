@@ -64,3 +64,24 @@ impl SufferDamage {
         }
     }
 }
+
+#[derive(Component, Debug)]
+pub struct Item {
+
+}
+
+#[derive(Component, Debug)]
+pub struct AddHealth {
+    pub heal_amount : i32
+}
+
+#[derive(Component, Debug, Clone)]
+pub struct InInventory {
+    pub owner : Entity
+}
+
+#[derive(Component, Debug, Clone)]
+pub struct IntentToPickUpItem {
+    pub collected_by : Entity,
+    pub item : Entity
+}

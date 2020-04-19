@@ -21,6 +21,8 @@ use damage_system::DamageSystem;
 mod gui;
 mod gamelog;
 mod spawner;
+mod inventory_system;
+use inventory_system::*;
 
 #[derive(PartialEq, Copy, Clone)]
 pub enum RunState { AwaitingInput, PreRun, PlayerTurn, AITurn }
@@ -41,6 +43,8 @@ impl State {
         melee.run_now(&self.ecs);
         let mut damage = DamageSystem{};
         damage.run_now(&self.ecs);
+        let mut pickup = ItemCollectionSystem{};
+        pickup.run_now(&self.ecs);
         self.ecs.maintain();
     }
 }
@@ -112,6 +116,10 @@ fn main() -> rltk::BError {
     gs.ecs.register::<CombatStats>();
     gs.ecs.register::<IntentToMelee>();
     gs.ecs.register::<SufferDamage>();
+    gs.ecs.register::<Item>();
+    gs.ecs.register::<AddHealth>();
+    gs.ecs.register::<InInventory>();
+    gs.ecs.register::<IntentToPickUpItem>();
 
     let map : Map = Map::new_map_rooms_and_corridors();
     let (player_x, player_y) = map.rooms[0].center();
@@ -130,6 +138,6 @@ fn main() -> rltk::BError {
     gs.ecs.insert(player_entity);
     gs.ecs.insert(RunState::PreRun);
     gs.ecs.insert(gamelog::GameLog{ entries : vec!["Welcome to Rust Roguelike".to_string()] });
-  
+
     rltk::main_loop(context, gs)
 }
