@@ -25,7 +25,7 @@ mod inventory_system;
 use inventory_system::*;
 
 #[derive(PartialEq, Copy, Clone)]
-pub enum RunState { AwaitingInput, PreRun, PlayerTurn, AITurn, ShowInventory }
+pub enum RunState { AwaitingInput, PreRun, PlayerTurn, AITurn, ShowInventory, ShowDropItem }
 
 pub struct State {
     pub ecs: World,
@@ -45,8 +45,11 @@ impl State {
         damage.run_now(&self.ecs);
         let mut pickup = ItemCollectionSystem{};
         pickup.run_now(&self.ecs);
+        // todo: make this generic
         let mut potions = PotionUseSystem{};
         potions.run_now(&self.ecs);
+        let mut drop_items = ItemDropSystem{};
+        drop_items.run_now(&self.ecs);
         self.ecs.maintain();
     }
 }
@@ -107,16 +110,27 @@ impl GameState for State {
                     }
                 }
             }
+            
+            RunState::ShowDropItem => {
+                let result = gui::drop_item_menu(self, ctx);
+                match result.0 {
+                    gui::ItemMenuResult::Cancel => newrunstate = RunState::AwaitingInput,
+                    gui::ItemMenuResult::NoResponse => {}
+                    gui::ItemMenuResult::Selected => {
+                        let item_entity = result.1.unwrap();
+                        let mut intent = self.ecs.write_storage::<IntentToDropItem>();
+                        intent.insert(*self.ecs.fetch::<Entity>(), IntentToDropItem{ item: item_entity }).expect("Unable to insert intent");
+                        newrunstate = RunState::PlayerTurn;
+                    }
+                }
+            }
         }
 
         {
             let mut runwriter = self.ecs.write_resource::<RunState>();
             *runwriter = newrunstate;
         }
-        damage_system::delete_the_dead(&mut self.ecs);
-
-
-   
+        damage_system::delete_the_dead(&mut self.ecs);   
     }
 }
 
@@ -144,6 +158,7 @@ fn main() -> rltk::BError {
     gs.ecs.register::<InInventory>();
     gs.ecs.register::<IntentToPickUpItem>();
     gs.ecs.register::<IntentToUseHealingItem>();
+    gs.ecs.register::<IntentToDropItem>();
 
     let map : Map = Map::new_map_rooms_and_corridors();
     let (player_x, player_y) = map.rooms[0].center();
