@@ -45,6 +45,8 @@ impl State {
         damage.run_now(&self.ecs);
         let mut pickup = ItemCollectionSystem{};
         pickup.run_now(&self.ecs);
+        let mut potions = PotionUseSystem{};
+        potions.run_now(&self.ecs);
         self.ecs.maintain();
     }
 }
@@ -93,8 +95,16 @@ impl GameState for State {
             }
 
             RunState::ShowInventory => {
-                if gui::show_inventory(self, ctx) == gui::ItemMenuResult::Cancel {
-                    newrunstate = RunState::AwaitingInput;
+               let result = gui::show_inventory(self, ctx);
+                match result.0 {
+                    gui::ItemMenuResult::Cancel => newrunstate = RunState::AwaitingInput,
+                    gui::ItemMenuResult::NoResponse => {}
+                    gui::ItemMenuResult::Selected => {
+                        let item_entity = result.1.unwrap();
+                        let mut intent = self.ecs.write_storage::<IntentToUseHealingItem>();
+                        intent.insert(*self.ecs.fetch::<Entity>(), IntentToUseHealingItem{ health_item: item_entity }).expect("Unable to insert intent");
+                        newrunstate = RunState::AwaitingInput;
+                    }
                 }
             }
         }
@@ -133,6 +143,7 @@ fn main() -> rltk::BError {
     gs.ecs.register::<AddHealth>();
     gs.ecs.register::<InInventory>();
     gs.ecs.register::<IntentToPickUpItem>();
+    gs.ecs.register::<IntentToUseHealingItem>();
 
     let map : Map = Map::new_map_rooms_and_corridors();
     let (player_x, player_y) = map.rooms[0].center();

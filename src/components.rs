@@ -86,3 +86,8 @@ pub struct IntentToPickUpItem {
     pub collected_by : Entity,
     pub item : Entity
 }
+
+#[derive(Component, Debug, Clone)]
+pub struct IntentToUseHealingItem {
+    pub health_item : Entity
+}
