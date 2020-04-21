@@ -50,6 +50,7 @@ impl State {
         potions.run_now(&self.ecs);
         let mut drop_items = ItemDropSystem{};
         drop_items.run_now(&self.ecs);
+        
         self.ecs.maintain();
     }
 }
@@ -106,7 +107,7 @@ impl GameState for State {
                         let item_entity = result.1.unwrap();
                         let mut intent = self.ecs.write_storage::<IntentToUseHealingItem>();
                         intent.insert(*self.ecs.fetch::<Entity>(), IntentToUseHealingItem{ health_item: item_entity }).expect("Unable to insert intent");
-                        newrunstate = RunState::AwaitingInput;
+                        newrunstate = RunState::PlayerTurn;
                     }
                 }
             }

@@ -45,7 +45,7 @@ impl<'a> System<'a> for PotionUseSystem {
 
         fn run(&mut self, data : Self::SystemData) {
         let (player_entity, mut gamelog, entities, mut wants_drink, names, potions, mut combat_stats) = data;
-
+    
         for (entity, drink, stats) in (&entities, &wants_drink, &mut combat_stats).join() {
             let potion = potions.get(drink.health_item);
             match potion {
