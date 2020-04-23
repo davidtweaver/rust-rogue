@@ -67,9 +67,10 @@ impl SufferDamage {
 }
 
 #[derive(Component, Debug)]
-pub struct Item {
+pub struct Item { }
 
-}
+#[derive(Component, Debug)]
+pub struct Consumable { }
 
 #[derive(Component, Debug)]
 pub struct AddHealth {
@@ -88,8 +89,8 @@ pub struct IntentToPickUpItem {
 }
 
 #[derive(Component, Debug, Clone)]
-pub struct IntentToUseHealingItem {
-    pub health_item : Entity
+pub struct IntentToUseItem {
+    pub item : Entity
 }
 
 #[derive(Component, Debug, Clone)]

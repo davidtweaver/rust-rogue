@@ -46,7 +46,7 @@ impl State {
         let mut pickup = ItemCollectionSystem{};
         pickup.run_now(&self.ecs);
         // todo: make this generic
-        let mut potions = PotionUseSystem{};
+        let mut potions = ItemUseSystem{};
         potions.run_now(&self.ecs);
         let mut drop_items = ItemDropSystem{};
         drop_items.run_now(&self.ecs);
@@ -105,8 +105,8 @@ impl GameState for State {
                     gui::ItemMenuResult::NoResponse => {}
                     gui::ItemMenuResult::Selected => {
                         let item_entity = result.1.unwrap();
-                        let mut intent = self.ecs.write_storage::<IntentToUseHealingItem>();
-                        intent.insert(*self.ecs.fetch::<Entity>(), IntentToUseHealingItem{ health_item: item_entity }).expect("Unable to insert intent");
+                        let mut intent = self.ecs.write_storage::<IntentToUseItem>();
+                        intent.insert(*self.ecs.fetch::<Entity>(), IntentToUseItem{ item: item_entity }).expect("Unable to insert intent");
                         newrunstate = RunState::PlayerTurn;
                     }
                 }
@@ -158,7 +158,7 @@ fn main() -> rltk::BError {
     gs.ecs.register::<AddHealth>();
     gs.ecs.register::<InInventory>();
     gs.ecs.register::<IntentToPickUpItem>();
-    gs.ecs.register::<IntentToUseHealingItem>();
+    gs.ecs.register::<IntentToUseItem>();
     gs.ecs.register::<IntentToDropItem>();
 
     let map : Map = Map::new_map_rooms_and_corridors();
