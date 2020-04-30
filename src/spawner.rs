@@ -2,7 +2,7 @@ use rltk::{ RGB, RandomNumberGenerator };
 use specs::prelude::*;
 
 
-use super::{CombatStats, Player, Renderable, Name, Position, Viewshed, NPC, BlocksTile, Rect, map::MAPWIDTH, Item, AddHealth};
+use super::{CombatStats, Player, Renderable, Consumable, Name, Position, Viewshed, NPC, BlocksTile, Rect, map::MAPWIDTH, Item, AddHealth};
 
 const MAX_MONSTERS : i32 = 4;
 const MAX_ITEMS : i32 = 2;
@@ -126,5 +126,6 @@ fn health_potion(ecs: &mut World, x: i32, y: i32) {
         .with(Name{ name : "Health Potion".to_string() })
         .with(Item{})
         .with(AddHealth{ heal_amount: 8 })
+        .with(Consumable{})
         .build();
 }

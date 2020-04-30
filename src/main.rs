@@ -22,7 +22,10 @@ mod gui;
 mod gamelog;
 mod spawner;
 mod inventory_system;
-use inventory_system::*;
+use inventory_system::ItemUseSystem;
+use inventory_system::ItemDropSystem;
+use inventory_system::ItemCollectionSystem;
+
 
 #[derive(PartialEq, Copy, Clone)]
 pub enum RunState { AwaitingInput, PreRun, PlayerTurn, AITurn, ShowInventory, ShowDropItem }
@@ -46,8 +49,8 @@ impl State {
         let mut pickup = ItemCollectionSystem{};
         pickup.run_now(&self.ecs);
         // todo: make this generic
-        let mut potions = ItemUseSystem{};
-        potions.run_now(&self.ecs);
+        let mut item_use = ItemUseSystem{};
+        item_use.run_now(&self.ecs);
         let mut drop_items = ItemDropSystem{};
         drop_items.run_now(&self.ecs);
         
@@ -144,6 +147,7 @@ fn main() -> rltk::BError {
     let mut gs = State {
         ecs: World::new(),
     };
+    // register your components here after creation
     gs.ecs.register::<Position>();
     gs.ecs.register::<Renderable>();
     gs.ecs.register::<Player>();
@@ -159,7 +163,9 @@ fn main() -> rltk::BError {
     gs.ecs.register::<InInventory>();
     gs.ecs.register::<IntentToPickUpItem>();
     gs.ecs.register::<IntentToUseItem>();
+    gs.ecs.register::<Consumable>();
     gs.ecs.register::<IntentToDropItem>();
+
 
     let map : Map = Map::new_map_rooms_and_corridors();
     let (player_x, player_y) = map.rooms[0].center();
@@ -178,6 +184,7 @@ fn main() -> rltk::BError {
     gs.ecs.insert(player_entity);
     gs.ecs.insert(RunState::PreRun);
     gs.ecs.insert(gamelog::GameLog{ entries : vec!["Welcome to Rust Roguelike".to_string()] });
+    
 
     rltk::main_loop(context, gs)
 }

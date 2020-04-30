@@ -1,5 +1,5 @@
 use specs::prelude::*;
-use super::{IntentToPickUpItem, IntentToUseItem, IntentToDropItem, AddHealth, CombatStats, Name, InInventory, Position, gamelog::GameLog};
+use super::{IntentToPickUpItem, IntentToUseItem, IntentToDropItem, Consumable, AddHealth, CombatStats, Name, InInventory, Position, gamelog::GameLog};
 
 pub struct ItemCollectionSystem {}
 
@@ -39,28 +39,37 @@ impl<'a> System<'a> for ItemUseSystem {
                         Entities<'a>,
                         WriteStorage<'a, IntentToUseItem>,
                         ReadStorage<'a, Name>,
+                        ReadStorage<'a, Consumable>,
                         ReadStorage<'a, AddHealth>,
                         WriteStorage<'a, CombatStats>
                       );
 
         fn run(&mut self, data : Self::SystemData) {
-        let (player_entity, mut gamelog, entities, mut wants_drink, names, potions, mut combat_stats) = data;
+            let (player_entity, mut gamelog, entities, mut intent_to_use, names, consumables, healing, mut combat_stats) = data;
     
-        for (entity, drink, stats) in (&entities, &wants_drink, &mut combat_stats).join() {
-            let potion = potions.get(drink.item);
-            match potion {
-                None => {}
-                Some(potion) => {
-                    stats.hp = i32::min(stats.max_hp, stats.hp + potion.heal_amount);
-                    if entity == *player_entity {
-                        gamelog.entries.push(format!("You drink the {}, healing {} hp.", names.get(drink.item).unwrap().name, potion.heal_amount));
+            for (entity, useitem, stats) in (&entities, &intent_to_use, &mut combat_stats).join() {
+                let consumable = consumables.get(useitem.item);
+                
+                let item_heals = healing.get(useitem.item);
+                match item_heals {
+                    None => {}
+                    Some(healer) => {
+                        stats.hp = i32::min(stats.max_hp, stats.hp + healer.heal_amount);
+                        if entity == *player_entity {
+                            gamelog.entries.push(format!("You drink the {}, healing {} hp.", names.get(useitem.item).unwrap().name, healer.heal_amount));
+                        }
                     }
-                    entities.delete(drink.item).expect("Delete failed");
                 }
+
+                match consumable {
+                    None => {}
+                    Some(_) => {
+                        entities.delete(useitem.item).expect("Delete failed");
+                }       
             }
         }
 
-        wants_drink.clear();
+        intent_to_use.clear();
     }
 }
 
