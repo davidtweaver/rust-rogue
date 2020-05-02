@@ -90,7 +90,8 @@ pub struct IntentToPickUpItem {
 
 #[derive(Component, Debug, Clone)]
 pub struct IntentToUseItem {
-    pub item : Entity
+    pub item : Entity,
+    pub target : Option<rltk::Point>
 }
 
 #[derive(Component, Debug, Clone)]

@@ -1,5 +1,5 @@
 use specs::prelude::*;
-use super::{IntentToPickUpItem, IntentToUseItem, IntentToDropItem, Consumable, AddHealth, CombatStats, Name, InInventory, Position, gamelog::GameLog};
+use super::{Map, IntentToPickUpItem, IntentToUseItem, IntentToDropItem, Consumable, AddHealth, InflictDamage, SufferDamage, CombatStats, Name, InInventory, Position, gamelog::GameLog};
 
 pub struct ItemCollectionSystem {}
 
@@ -36,20 +36,24 @@ impl<'a> System<'a> for ItemUseSystem {
     #[allow(clippy::type_complexity)]
     type SystemData = ( ReadExpect<'a, Entity>,
                         WriteExpect<'a, GameLog>,
+                        ReadExpect<'a, Map>,
                         Entities<'a>,
                         WriteStorage<'a, IntentToUseItem>,
                         ReadStorage<'a, Name>,
                         ReadStorage<'a, Consumable>,
                         ReadStorage<'a, AddHealth>,
-                        WriteStorage<'a, CombatStats>
+                        WriteStorage<'a, CombatStats>,
+                        ReadStorage<'a, InflictDamage>,
+                        WriteStorage<'a, SufferDamage>
                       );
 
         fn run(&mut self, data : Self::SystemData) {
-            let (player_entity, mut gamelog, entities, mut intent_to_use, names, consumables, healing, mut combat_stats) = data;
+            let (player_entity, mut gamelog, map, entities, mut intent_to_use, names, consumables, healing, mut combat_stats, inflict_damage, mut suffer_damage ) = data;
     
             for (entity, useitem, stats) in (&entities, &intent_to_use, &mut combat_stats).join() {
                 let consumable = consumables.get(useitem.item);
                 
+                // healing logic
                 let item_heals = healing.get(useitem.item);
                 match item_heals {
                     None => {}
@@ -57,6 +61,27 @@ impl<'a> System<'a> for ItemUseSystem {
                         stats.hp = i32::min(stats.max_hp, stats.hp + healer.heal_amount);
                         if entity == *player_entity {
                             gamelog.entries.push(format!("You drink the {}, healing {} hp.", names.get(useitem.item).unwrap().name, healer.heal_amount));
+                        }
+                    }
+                }
+
+                // item damange logic
+                let item_damages = inflict_damage.get(useitem.item);
+                match item_damages {
+                    None => {}
+                    Some(damage) => {
+                        let target_point = useitem.target.unwrap();
+                        let idx = map.xy_idx(target_point.x, target_point.y);
+                        let mut used_item = false;
+                        for mob in map.tile_content[idx].iter() {
+                            SufferDamage::new_damage(&mut suffer_damage, *mob, damage.damage);
+                            if entity == *player_entity {
+                                let mob_name = names.get(*mob).unwrap();
+                                let item_name = names.get(useitem.item).unwrap();
+                                gamelog.entries.push(format!("You use {} on {}, inflicting {} hp.", item_name.name, mob_name.name, damage.damage));
+                            }
+                
+                            used_item = true;
                         }
                     }
                 }
