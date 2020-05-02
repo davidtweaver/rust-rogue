@@ -97,3 +97,13 @@ pub struct IntentToUseItem {
 pub struct IntentToDropItem {
     pub item : Entity
 }
+
+#[derive(Component, Debug)]
+pub struct Ranged {
+    pub range : i32
+}
+
+#[derive(Component, Debug)]
+pub struct InflictDamage {
+    pub damage : i32
+}

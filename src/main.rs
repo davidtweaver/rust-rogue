@@ -165,6 +165,8 @@ fn main() -> rltk::BError {
     gs.ecs.register::<IntentToUseItem>();
     gs.ecs.register::<Consumable>();
     gs.ecs.register::<IntentToDropItem>();
+    gs.ecs.register::<Ranged>();
+    gs.ecs.register::<InflictDamage>();
 
 
     let map : Map = Map::new_map_rooms_and_corridors();
