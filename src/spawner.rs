@@ -2,7 +2,7 @@ use rltk::{ RGB, RandomNumberGenerator };
 use specs::prelude::*;
 
 
-use super::{CombatStats, Player, Renderable, Consumable, Name, Position, Viewshed, NPC, BlocksTile, Rect, map::MAPWIDTH, Item, AddHealth, Ranged, InflictDamage};
+use super::{CombatStats, Player, Renderable, Consumable, Name, Position, Viewshed, NPC, BlocksTile, Rect, map::MAPWIDTH, Item, AddHealth, Ranged, InflictDamage, AreaOfEffect};
 
 const MAX_MONSTERS : i32 = 4;
 const MAX_ITEMS : i32 = 2;
@@ -122,6 +122,7 @@ fn random_item(ecs: &mut World, x: i32, y: i32) {
     }
     match roll {
         1 => { health_potion(ecs, x, y) }
+        2 => { fireball_scroll(ecs, x, y) }
         _ => { magic_missle_scroll(ecs, x, y) }
     }
 }
@@ -157,5 +158,24 @@ fn magic_missle_scroll(ecs: &mut World, x: i32, y: i32) {
         .with(Consumable{})
         .with(Ranged{ range: 6 })
         .with(InflictDamage{ damage: 8 })
+        .build();
+}
+
+// todo: make this generic
+fn fireball_scroll(ecs: &mut World, x: i32, y: i32) {
+    ecs.create_entity()
+        .with(Position{ x, y })
+        .with(Renderable{
+            glyph: rltk::to_cp437(')'),
+            fg: RGB::named(rltk::ORANGE),
+            bg: RGB::named(rltk::BLACK),
+            render_order: 2
+        })
+        .with(Name{ name : "Fireball Scroll".to_string() })
+        .with(Item{})
+        .with(Consumable{})
+        .with(Ranged{ range: 6 })
+        .with(InflictDamage{ damage: 20 })
+        .with(AreaOfEffect{ radius: 3 })
         .build();
 }

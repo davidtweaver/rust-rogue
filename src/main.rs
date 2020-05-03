@@ -186,6 +186,7 @@ fn main() -> rltk::BError {
     gs.ecs.register::<IntentToDropItem>();
     gs.ecs.register::<Ranged>();
     gs.ecs.register::<InflictDamage>();
+    gs.ecs.register::<AreaOfEffect>();
 
 
     let map : Map = Map::new_map_rooms_and_corridors();
