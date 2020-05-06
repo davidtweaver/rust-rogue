@@ -1,5 +1,5 @@
 use specs::prelude::*;
-use super::{Map, IntentToPickUpItem, IntentToUseItem, IntentToDropItem, Consumable, AddHealth, InflictDamage, SufferDamage, CombatStats, Name, InInventory, Position, gamelog::GameLog, AreaOfEffect};
+use super::{Map, IntentToPickUpItem, IntentToUseItem, IntentToDropItem, Consumable, AddHealth, InflictDamage, SufferDamage, CombatStats, Name, InInventory, Position, gamelog::GameLog, AreaOfEffect, Confusion};
 
 pub struct ItemCollectionSystem {}
 
@@ -45,11 +45,12 @@ impl<'a> System<'a> for ItemUseSystem {
                         WriteStorage<'a, CombatStats>,
                         ReadStorage<'a, InflictDamage>,
                         WriteStorage<'a, SufferDamage>,
-                        ReadStorage<'a,  AreaOfEffect>
+                        ReadStorage<'a,  AreaOfEffect>,
+                        WriteStorage<'a, Confusion>
                       );
 
         fn run(&mut self, data : Self::SystemData) {
-            let (player_entity, mut gamelog, map, entities, mut intent_to_use, names, consumables, healing, mut combat_stats, inflict_damage, mut suffer_damage, aoe ) = data;
+            let (player_entity, mut gamelog, map, entities, mut intent_to_use, names, consumables, healing, mut combat_stats, inflict_damage, mut suffer_damage, aoe, mut confused ) = data;
     
             for (entity, useitem) in (&entities, &intent_to_use).join() {
                 let consumable = consumables.get(useitem.item);
@@ -123,6 +124,30 @@ impl<'a> System<'a> for ItemUseSystem {
                         }
                         used_item = true;
                     }
+                }
+
+                // confusion status logic - note this only adds status, it doesn't handle the actual AI logic
+                // Can it pass along confusion? Note the use of scopes to escape from the borrow checker!
+                let mut add_confusion = Vec::new();
+                {
+                    let causes_confusion = confused.get(useitem.item);
+                    match causes_confusion {
+                        None => {}
+                        Some(confusion) => {
+                            used_item = false;
+                            for mob in targets.iter() {
+                                add_confusion.push((*mob, confusion.turns ));
+                                if entity == *player_entity {
+                                    let mob_name = names.get(*mob).unwrap();
+                                    let item_name = names.get(useitem.item).unwrap();
+                                    gamelog.entries.push(format!("You use {} on {}, confusing them.", item_name.name, mob_name.name));
+                                }
+                            }
+                        }
+                    }
+                }
+                for mob in add_confusion.iter() {
+                    confused.insert(mob.0, Confusion{ turns: mob.1 }).expect("Unable to insert status");
                 }
 
                 match consumable {
