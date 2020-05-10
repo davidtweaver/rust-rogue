@@ -29,7 +29,7 @@ pub struct Viewshed {
 #[derive(Component, Debug)]
 pub struct NPC {}
 
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Clone)]
 pub struct Name {
     pub name : String
 }
@@ -109,12 +109,15 @@ pub struct InflictDamage {
     pub damage : i32
 }
 
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Clone)]
 pub struct AreaOfEffect {
     pub radius : i32
 }
 
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Clone)]
 pub struct Confusion {
     pub turns : i32
 }
+
+#[derive(Component, Debug, Clone)]
+pub struct SerializeMe;

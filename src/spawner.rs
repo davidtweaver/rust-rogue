@@ -1,8 +1,8 @@
 use rltk::{ RGB, RandomNumberGenerator };
 use specs::prelude::*;
+use specs::saveload::{MarkedBuilder, SimpleMarker};
 
-
-use super::{CombatStats, Player, Renderable, Consumable, Name, Position, Viewshed, NPC, BlocksTile, Rect, map::MAPWIDTH, Item, AddHealth, Ranged, InflictDamage, AreaOfEffect, Confusion};
+use super::{CombatStats, Player, Renderable, Consumable, Name, Position, Viewshed, NPC, BlocksTile, Rect, map::MAPWIDTH, Item, AddHealth, Ranged, InflictDamage, AreaOfEffect, Confusion, SerializeMe};
 
 const MAX_MONSTERS : i32 = 4;
 const MAX_ITEMS : i32 = 2;
@@ -22,6 +22,7 @@ pub fn player(ecs : &mut World, player_x : i32, player_y : i32) -> Entity {
         .with(Viewshed{ visible_tiles : Vec::new(), range: 8, dirty: true })
         .with(Name{name: "Player".to_string() })
         .with(CombatStats{ max_hp: 300, hp: 300, defense: 2, power: 5 })
+        .marked::<SimpleMarker<SerializeMe>>()
         .build()
 }
 
