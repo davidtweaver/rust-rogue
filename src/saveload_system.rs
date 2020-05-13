@@ -6,9 +6,51 @@ use std::fs::File;
 use std::path::Path;
 use std::fs;
 
+//The short version of what it does is that it takes your ECS as the first parameter, and a tuple with your entity store and "markers" stores in it.
+//Every parameter after that is a type - listing a type stored in your ECS.
+
+macro_rules! serialize_individually {
+    ($ecs:expr, $ser:expr, $data:expr, $( $type:ty),*) => {
+        $(
+        SerializeComponents::<NoError, SimpleMarker<SerializeMe>>::serialize(
+            &( $ecs.read_storage::<$type>(), ),
+            &$data.0,
+            &$data.1,
+            &mut $ser,
+        )
+        .unwrap();
+        )*
+    };
+}
 
 pub fn save_game(ecs : &mut World) {
+    // Create helper
+    let mapcopy = ecs.get_mut::<super::map::Map>().unwrap().clone();
+    let savehelper = ecs
+        .create_entity()
+        .with(SerializationHelper{ map : mapcopy })
+        .marked::<SimpleMarker<SerializeMe>>()
+        .build();
 
+    // Actually serialize
+    {
+        let data = ( ecs.entities(), ecs.read_storage::<SimpleMarker<SerializeMe>>() );
+
+        let writer = File::create("./savegame.json").unwrap();
+        let mut serializer = serde_json::Serializer::new(writer);
+        serialize_individually!(ecs, serializer, data, Position, Renderable, Player, Viewshed, NPC, 
+            Name, BlocksTile, CombatStats, SufferDamage, IntentToMelee, Item, Consumable, Ranged, InflictDamage, 
+            AreaOfEffect, Confusion, AddHealth, InInventory, IntentToPickUpItem, IntentToUseItem,
+            IntentToDropItem, SerializationHelper
+        );
+    }
+
+    // Clean up
+    ecs.delete_entity(savehelper).expect("Crash on cleanup");
+}
+
+pub fn does_save_exist() -> bool {
+    Path::new("./savegame.json").exists()
 }
 
 pub fn load_game(ecs : &mut World) {
@@ -19,19 +61,7 @@ pub fn delete_save() {
      if Path::new("./savegame.json").exists() { std::fs::remove_file("./savegame.json").expect("Unable to delete file"); }
 } 
 
-// macro_rules! serialize_individually {
-//     ($ecs:expr, $ser:expr, $data:expr, $( $type:ty),*) => {
-//         $(
-//         SerializeComponents::<NoError, SimpleMarker<SerializeMe>>::serialize(
-//             &( $ecs.read_storage::<$type>(), ),
-//             &$data.0,
-//             &$data.1,
-//             &mut $ser,
-//         )
-//         .unwrap();
-//         )*
-//     };
-// }
+
 
 // #[cfg(target_arch = "wasm32")]
 // pub fn save_game(_ecs : &mut World) {
@@ -64,9 +94,7 @@ pub fn delete_save() {
 //     ecs.delete_entity(savehelper).expect("Crash on cleanup");
 // }
 
-// pub fn does_save_exist() -> bool {
-//     Path::new("./savegame.json").exists()
-// }
+
 
 // macro_rules! deserialize_individually {
 //     ($ecs:expr, $de:expr, $data:expr, $( $type:ty),*) => {

@@ -58,6 +58,7 @@ fn hostile_npc<S : ToString>(ecs: &mut World, x: i32, y: i32, glyph : rltk::Font
         .with(Name{ name : name.to_string() })
         .with(BlocksTile{})
         .with(CombatStats{ max_hp: 16, hp: 16, defense: 1, power: 4 })
+        .marked::<SimpleMarker<SerializeMe>>()
         .build();
 }
 
@@ -142,6 +143,7 @@ fn health_potion(ecs: &mut World, x: i32, y: i32) {
         .with(Item{})
         .with(AddHealth{ heal_amount: 8 })
         .with(Consumable{})
+        .marked::<SimpleMarker<SerializeMe>>()
         .build();
 }
 
@@ -160,6 +162,7 @@ fn magic_missle_scroll(ecs: &mut World, x: i32, y: i32) {
         .with(Consumable{})
         .with(Ranged{ range: 6 })
         .with(InflictDamage{ damage: 8 })
+        .marked::<SimpleMarker<SerializeMe>>()
         .build();
 }
 
@@ -179,6 +182,7 @@ fn fireball_scroll(ecs: &mut World, x: i32, y: i32) {
         .with(Ranged{ range: 6 })
         .with(InflictDamage{ damage: 20 })
         .with(AreaOfEffect{ radius: 3 })
+        .marked::<SimpleMarker<SerializeMe>>()
         .build();
 }
 
@@ -197,5 +201,6 @@ fn confusion_scroll(ecs: &mut World, x: i32, y: i32) {
         .with(Consumable{})
         .with(Ranged{ range: 6 })
         .with(Confusion{ turns: 4 })
+        .marked::<SimpleMarker<SerializeMe>>()
         .build();
 }
